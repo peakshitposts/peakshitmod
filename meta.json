@@ -1,0 +1,12 @@
+{
+  "title": "peakshitmod",
+  "requires-steamodded": true,
+  "requires-talisman": false,
+  "categories": ["Content", "Jokers"],
+  "author": "peakshitposts",
+  "repo": "https://github.com/peakshitposts/peakshitmod",
+  "downloadURL": "https://github.com/peakshitposts/peakshitmod/releases/latest/download/peakshitmod.zip",
+  "folderName": "peakshitmod",
+  "version": "1.0.0",
+  "automatic-version-check": true
+}

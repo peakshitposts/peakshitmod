@@ -1,0 +1,12 @@
+{
+  "descriptions": {
+    "Joker": {
+      "j_mymod_princess": {
+        "name": "Princess",
+        "text": [
+          "Gains {C:mult}+1{} Mult for each scored face card (Currently {C:mult}+0{} Mult)"
+        ]
+      }
+    }
+  }
+}
