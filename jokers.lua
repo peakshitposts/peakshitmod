@@ -481,47 +481,50 @@ SMODS.Joker {
   loc_txt = {
     name = "Kanye West",
     text = {
-      "Copies adjacent Jokers’ effects",
-      "(only if compatible)",
+      "Copies the effect of adjacent Jokers",
       "and adds {C:mult}+10{} Mult"
     }
   },
 
   calculate = function(self, card, context)
-    if context.after and context.cardarea == G.jokers and not context.blueprint then
-        local card_index = nil
-        for k, v in ipairs(G.jokers.cards) do
-            if v == card then card_index = k break end
-        end
+    local valid_phase = context.joker_main or context.individual
+    if not valid_phase then return end
 
-        if not card_index then return end
-
-        local targets = {}
-        if G.jokers.cards[card_index - 1] then
-            table.insert(targets, G.jokers.cards[card_index - 1])
-        end
-        if G.jokers.cards[card_index + 1] then
-            table.insert(targets, G.jokers.cards[card_index + 1])
-        end
-
-        local results = {}
-        for _, target in ipairs(targets) do
-            if target ~= card then
-                local result = target.ability.calculate and target.ability:calculate(target, context)
-                if type(result) == "table" then
-                    for k, v in pairs(result) do
-                        results[k] = (results[k] or 0) + v
-                    end
-                end
-            end
-        end
-
-        if next(results) then
-            results.message = "I Am Better"
-            return results
-        end
+    local bonus = {}
+    if context.joker_main then
+      bonus = { mult = 10, message = "I Am Them", colour = G.C.MULT }
     end
-end
+
+    -- Find Kanye's index in G.jokers.cards
+    local index = nil
+    for i, j in ipairs(G.jokers.cards) do
+      if j == card then
+        index = i
+        break
+      end
+    end
+    if not index then return bonus end
+
+    -- Get adjacent jokers
+    local neighbors = {}
+    if G.jokers.cards[index - 1] then table.insert(neighbors, G.jokers.cards[index - 1]) end
+    if G.jokers.cards[index + 1] then table.insert(neighbors, G.jokers.cards[index + 1]) end
+
+    for _, neighbor in ipairs(neighbors) do
+      if neighbor ~= card then
+        local result = SMODS.blueprint_effect(card, neighbor, context)
+        if result and type(result) == "table" then
+          for k, v in pairs(result) do
+            if k ~= "message" and type(v) == "number" then
+              bonus[k] = (bonus[k] or 0) + v
+            end
+          end
+        end
+      end
+    end
+
+    return next(bonus) and bonus or nil
+  end
 }
 
 SMODS.Joker {
