@@ -5,7 +5,7 @@
   "categories": ["Content", "Jokers"],
   "author": "peakshitposts",
   "repo": "https://github.com/peakshitposts/peakshitmod",
-  "downloadURL": "https://github.com/peakshitposts/peakshitmod/releases/latest/download/peakshitmod-main.zip",
+  "downloadURL": "https://github.com/peakshitposts/peakshitmod/archive/refs/tags/main.zip",
   "folderName": "peakshitmod",
   "version": "1.0.0",
   "automatic-version-check": true
