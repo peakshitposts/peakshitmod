@@ -123,7 +123,7 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
-    key = "heisenburg",
+    key = "heisenberg",
     path = "heisenburg.png",
     px = 500,
     py = 700
@@ -1228,9 +1228,9 @@ SMODS.Joker{
     loc_txt = {
         name = "Drum Gun",
         text = {
-            "Gives {X:mult,C:white}X#2#{} Mult on hands",
+            "Gives {X:mult,C:white}X#1#{} Mult on hands",
             "played every 4th round.",
-            "{C:inactive}(rounds remaining: {C:attention}#1#{}{C:inactive}){}"
+            "{C:inactive}(rounds remaining: {C:attention}#2#{}{C:inactive}){}"
         }
     },
     set_badges = function(self, card, badges)
@@ -1325,8 +1325,8 @@ end
 }
 
 SMODS.Joker{
-    name = "Heisenburg",
-    key = "heisenburg",
+    name = "Heisenberg",
+    key = "heisenberg",
     config = {
         extra = {
             inks = 0,
@@ -1334,7 +1334,7 @@ SMODS.Joker{
         }
     },
     loc_txt = {
-        ['name'] = 'Heisenburg',
+        ['name'] = 'Heisenberg',
         ['text'] = {
             [1] = 'At end of round, adds a negative {C:attention}Crystal Meth{} joker.',
             [2] = 'Once 3 are present, they are sold for {C:attention}$#1#{} and',
@@ -1349,7 +1349,7 @@ SMODS.Joker{
     eternal_compat = true,
     unlocked = true,
     discovered = true,
-    atlas = 'heisenburg',
+    atlas = 'heisenberg',
 
     loc_vars = function(self, info_queue, card)
         local gain_dollars = (card.ability and card.ability.extra and card.ability.extra.gain_dollars) or (self.config and self.config.extra and self.config.extra.gain_dollars) or 10
@@ -1450,7 +1450,7 @@ SMODS.Joker{
         ['name'] = 'Crystal Meth',
         ['text'] = {
             [1] = 'The purest stuff on the market',
-            [2] = '{C:inactive}(used for the {}{C:attention}Heisenburg{} {C:inactive}joker){}'
+            [2] = '{C:inactive}(used for the {}{C:attention}Heisenberg{} {C:inactive}joker){}'
         }
     },
     pos = {x = 0, y = 0},
@@ -1501,7 +1501,7 @@ SMODS.Joker {
     loc_txt = {
         name = "Jesse Pinkman",
         text = {
-            "If {C:attention}Heisenburg{} is present:",
+            "If {C:attention}Heisenberg{} is present:",
             "{C:chips}+#1#{} Chips, {X:mult,C:white}X#2#{} Mult",
             "Otherwise: {C:chips}+#3#{} Chips, {C:mult}+#4#{} Mult"
         }
@@ -1526,7 +1526,7 @@ SMODS.Joker {
             if j ~= card then
                 local key = (j.ability and j.ability.key)
                             or (j.config.center and j.config.center.key)
-                if key == "j_PSM_heisenburg" then
+                if key == "j_PSM_heisenberg" then
                     has_heisenburg = true
                     break
                 end
@@ -2539,3 +2539,125 @@ SMODS.Consumable {
         end
     end,
 }
+
+-- AAAAAAAA DECKS HERE!!!
+
+SMODS.Back{
+    name = 'Ink Deck',
+    key = 'inkdeck',
+    atlas = 'inkmachine',
+    pos = {x = 0, y = 0},
+    loc_txt = {
+        name = 'Ink Deck',
+        text = {
+            'Start with a negative {C:red}Ink Machine{}',
+            '{C:attention}Let the ink flow through you as blood.{}',
+        },
+    },
+
+    apply = function ()
+        G.E_MANAGER:add_event(Event({
+            func = function ()
+                -- Add Ink Machine as negative edition
+                local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_inkmachine')
+                if joker and joker.set_edition then
+                    joker:set_edition("e_negative", true)
+                    joker:set_eternal(false)
+                end
+                joker:add_to_deck()
+                G.jokers:emplace(joker)
+                return true
+            end
+        }))
+    end,
+}
+
+SMODS.Back{
+    name = 'Walters Deck',
+    key = 'waltersdeck',
+    atlas = 'heisenberg',
+    pos = {x = 0, y = 0},
+    loc_txt = {
+        name = 'Walters Deck',
+        text = {
+            'Start with a negative {C:red}Heisenberg{}',
+            '{C:attention}Wake up, player. We have to cook.{}',
+        },
+    },
+
+    apply = function ()
+        G.E_MANAGER:add_event(Event({
+            func = function ()
+                -- Add Heisenberg as negative edition
+                local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_heisenberg')
+                if joker and joker.set_edition then
+                    joker:set_edition("e_negative", true)
+                    joker:set_eternal(false)
+                end
+                joker:add_to_deck()
+                G.jokers:emplace(joker)
+                return true
+            end
+        }))
+    end,
+}
+
+if (SMODS.Mods["CardSleeves"] or {}).can_load then
+    CardSleeves.Sleeve {
+		key = 'walterssleeve',
+    atlas = 'heisenberg',
+    pos = {x = 0, y = 0},
+    loc_txt = {
+        name = 'Walters Sleeve',
+        text = {
+            'Start with a negative {C:red}Heisenberg{}',
+            '{C:attention}Wake up, player. We have to cook.{}',
+        },
+    },
+
+    apply = function ()
+        G.E_MANAGER:add_event(Event({
+            func = function ()
+                -- Add Heisenberg as negative edition
+                local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_heisenberg')
+                if joker and joker.set_edition then
+                    joker:set_edition("e_negative", true)
+                    joker:set_eternal(false)
+                end
+                joker:add_to_deck()
+                G.jokers:emplace(joker)
+                return true
+            end
+        }))
+    end
+	}
+
+    CardSleeves.Sleeve {
+		 key = 'inksleeve',
+    atlas = 'inkmachine',
+    pos = {x = 0, y = 0},
+    loc_txt = {
+        name = 'Ink Sleeve',
+        text = {
+            'Start with a negative {C:red}Ink Machine{}',
+            '{C:attention}Let the ink flow through you as blood.{}',
+        },
+    },
+
+    apply = function ()
+        G.E_MANAGER:add_event(Event({
+            func = function ()
+                -- Add Ink Machine as negative edition
+                local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_inkmachine')
+                if joker and joker.set_edition then
+                    joker:set_edition("e_negative", true)
+                    joker:set_eternal(false)
+                end
+                joker:add_to_deck()
+                G.jokers:emplace(joker)
+                return true
+            end
+        }))
+    end
+	}
+end
