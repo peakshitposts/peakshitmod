@@ -115,6 +115,62 @@ SMODS.Atlas {
     py = 700
 }
 
+SMODS.Atlas {
+    key = "tomnook",
+    path = "tn.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "heisenburg",
+    path = "heisenburg.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "meth",
+    path = "meth.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "jp",
+    path = "jp.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "sw",
+    path = "sw.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "gus",
+    path = "gus.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "saul",
+    path = "saul.png",
+    px = 232,
+    py = 329
+}
+
+SMODS.Atlas {
+    key = "ts",
+    path = "ts.png",
+    px = 500,
+    py = 700
+}
+
 -- Register both sounds globally
 SMODS.Sound {
     key = "PSM_forever",
@@ -124,12 +180,21 @@ SMODS.Sound {
     key = "PSM_ioh",
     path = "IOH.ogg"
 }
+SMODS.Sound {
+    key = "PSM_tt",
+    path = "tt.ogg"
+}
 SMODS.Sound:register_global()
 
 -- Functions to play sounds
 local function play_IOH()
     play_sound("PSM_ioh", 1.0, 1.0)
 end
+
+local function play_tt()
+    play_sound("PSM_tt", 1.0, 1.7)
+end
+
 
 local function play_kingofpranks()
     play_sound("PSM_forever", 1.0, 1.0)
@@ -179,7 +244,7 @@ SMODS.Joker {
         name = "King of Pranks",
         text = {
             "Grants {X:mult,C:white}X3{} Mult",
-            "{C:inactive}(1 in 4 chance to get {C:red}PRANKED!{})",
+            "{C:inactive}(1 in 4 chance to get {C:red}PRANKED!{}{C:inactive}){}",
             "and receive {X:mult,C:white}X0.01{} Mult instead"
         }
     },
@@ -427,7 +492,7 @@ SMODS.Joker {
         name = "Ye",
         text = {
             "Each round randomly grants:",
-            "{C:chips}+20 Chips{}, {C:mult}+5 Mult{},",
+            "{C:chips}+20{} Chips, {C:mult}+5{} Mult,",
             "or {X:mult,C:white}X1.5{} Mult"
         }
     },
@@ -509,9 +574,6 @@ SMODS.Joker {
                     })
                 end
             else
-                card_eval_status_text(card, 'extra', nil, nil, nil, {
-                    colour = G.C.PURPLE
-                })
             end
         end
     end
@@ -664,8 +726,8 @@ SMODS.Joker{
             text = {
                 "When a {C:attention}face card{} is scored,",
                 "{C:attention}destroy{} it and add",
-                "{C:blue}+20 Chips{} and {X:mult,C:white}X0.4{} Mult",
-                "{C:inactive}(currently: {C:blue}+#1# Chips{} {C:inactive}and {X:mult,C:white}X#2#{} Mult)"
+                "{C:blue}+20{} Chips and {X:mult,C:white}X0.4{} Mult",
+                "{C:inactive}(currently: {C:blue}+#1#{} {C:inactive}Chips and {X:mult,C:white}X#2#{} {C:inactive}Mult){}"
             }
         }
     },
@@ -786,7 +848,7 @@ SMODS.Joker{
                         -- Check space
                         if #G.jokers.cards + G.GAME.joker_buffer >= G.jokers.config.card_limit then
                             card_eval_status_text(card, 'extra', nil, nil, nil, {
-                                message = "No room for creation!",
+                                message = "No room!",
                                 colour = G.C.RED
                             })
                             return true
@@ -896,7 +958,7 @@ SMODS.Joker{
             name = "Alice Angel",
             text = {
                 "When {C:attention}blind{} is selected,",
-                "lose {C:blue}1 hand{} and gain {C:red}3 discards.{}"
+                "lose {C:blue}1{} hand and gain {C:red}3{} discards."
             }
         }
     },
@@ -943,9 +1005,9 @@ SMODS.Joker {
     loc_txt = {
         name = "Wally Franks",
         text = {
-            "Gives {C:blue}+30 Chips{} and {C:red}+8 Mult{}",
+            "Gives {C:blue}+30{} Chips and {C:red}+8{} Mult",
             "Destroys after 5 rounds.",
-            "{C:inactive}(remaining: {C:attention}#1#{} #2#)"
+            "{C:inactive}(remaining: {C:attention}#1#{} {C:inactive}#2#){}"
         }
     },
     set_badges = function(self, card, badges)
@@ -1017,7 +1079,7 @@ SMODS.Joker{
         text = {
             "Gives {X:mult,C:white}X4{} Mult on hands",
             "played every 4th round.",
-            "{C:inactive}(rounds remaining: {C:attention}#1#{})"
+            "{C:inactive}(rounds remaining: {C:attention}#1#{}{C:inactive}){}"
         }
     },
     set_badges = function(self, card, badges)
@@ -1053,6 +1115,533 @@ SMODS.Joker{
                 card.ability.extra.roundsremaining = 3 -- Reset for next cycle
                 return {
                     Xmult = card.ability.extra.Xmult
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    name = "Tom Nook",
+    key = "tomnook",
+    config = {
+        extra = {
+            gain_dollars = 3, -- Added this to match context.setting_blind logic
+            set_dollars = 0
+        }
+    },
+    loc_txt = {
+        ['name'] = 'Tom Nook',
+        ['text'] = {
+            [1] = "Gives {C:money}$3{} when a {C:attention}Blind{} is played,",
+            [2] = "but sets money to {C:money}$0{} when you skip one."
+        }
+    },
+    pos = {x = 0, y = 0},
+    cost = 4,
+    rarity = 1,
+    blueprint_compat = true,
+    eternal_compat = true,
+    unlocked = true,
+    discovered = true,
+    atlas = 'tomnook',
+
+    loc_vars = function(self, info_queue, card)
+        return {vars = {}}
+    end,
+
+    calculate = function(self, card, context)
+        if context.setting_blind and not context.blueprint then
+            return {
+                dollars = card.ability.extra.gain_dollars
+            }
+        end
+
+        if context.skip_blind and not context.blueprint then
+    G.GAME.dollars = 0
+    card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
+        message = "Set to $0",
+        colour = G.C.MONEY
+    })
+    return true
+end
+
+    end
+}
+
+SMODS.Joker{
+    name = "Heisenburg",
+    key = "heisenburg",
+    config = {
+        extra = {
+            inks = 0,
+            gain_dollars = 10
+        }
+    },
+    loc_txt = {
+        ['name'] = 'Heisenburg',
+        ['text'] = {
+            [1] = 'At end of round, adds a negative {C:attention}Crystal Meth{} joker.',
+            [2] = 'Once 3 are present, they are sold for {C:attention}$10{} and',
+            [3] = 'creates a random {C:attention}Breaking Bad{} joker.',
+            [4] = '{C:inactive}(if there is room){}'
+        }
+    },
+    pos = {x = 0, y = 0},
+    cost = 12,
+    rarity = 3,
+    blueprint_compat = true,
+    eternal_compat = true,
+    unlocked = true,
+    discovered = true,
+    atlas = 'heisenburg',
+
+    loc_vars = function(self, info_queue, card)
+        return {vars = {}}
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.GREEN, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint then
+            return {
+                func = function()
+                    local bb_pool = {
+                        "j_PSM_jp",
+                        "j_PSM_sw",
+                        "j_PSM_gus",
+                        "j_PSM_saul",
+                        "j_PSM_ts"
+                    }
+
+                    -- Count active Meth jokers
+                    local meth_cards = {}
+                    for _, joker in ipairs(G.jokers.cards) do
+                        if joker.config.center.key == "j_PSM_meth" and not joker.getting_sliced then
+                            table.insert(meth_cards, joker)
+                        end
+                    end
+
+                    if #meth_cards < 3 then
+                        -- Add another Meth
+                        local meth = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_meth')
+                        meth:set_edition("e_negative", true)
+                        meth:add_to_deck()
+                        G.jokers:emplace(meth)
+                        card.ability.extra.inks = card.ability.extra.inks + 1
+                        card_eval_status_text(card, 'extra', nil, nil, nil, {
+                            colour = G.C.BLUE
+                        })
+                    elseif #meth_cards == 3 then
+                        -- Check space
+                        if #G.jokers.cards + G.GAME.joker_buffer >= G.jokers.config.card_limit then
+                            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                                message = "No room!",
+                                colour = G.C.RED
+                            })
+                            return true
+                        end
+
+                        -- Dissolve the meth cards
+                        for _, meth in ipairs(meth_cards) do
+                            meth.getting_sliced = true
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    meth:start_dissolve({G.C.BLACK}, nil, 1.5)
+                                    return true
+                                end
+                            }))
+                        end
+
+                        -- Delay and spawn BB joker + give $10
+                        G.E_MANAGER:add_event(Event({
+                            delay = 1.6,
+                            func = function()
+                                local chosen = pseudorandom_element(bb_pool)
+                                local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, chosen)
+                                joker:add_to_deck()
+                                G.jokers:emplace(joker)
+                                card.ability.extra.inks = 0
+
+                                ease_dollars(card.ability.extra.gain_dollars or 10)
+
+                                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                                    message = "Say My Name",
+                                    colour = G.C.BLUE
+                                })
+                                return true
+                            end
+                        }))
+                    end
+
+                    return true
+                end
+            }
+        end
+    end
+}
+
+
+SMODS.Joker{
+    name = "Crystal Meth",
+    key = "meth",
+    config = {
+        extra = {}
+    },
+    loc_txt = {
+        ['name'] = 'Crystal Meth',
+        ['text'] = {
+            [1] = 'The purest stuff on the market',
+            [2] = '{C:inactive}(used for the {}{C:attention}Heisenburg{} {C:inactive}joker){}'
+        }
+    },
+    pos = {x = 0, y = 0},
+    cost = 0,
+    rarity = 1,
+    blueprint_compat = true,
+    eternal_compat = true,
+    unlocked = true,
+    discovered = true,
+    atlas = 'meth',
+
+    in_pool = function(self, args)
+        return false
+    end,
+
+    loc_vars = function(self, info_queue, card)
+        return {vars = {}}
+    end,
+
+    set_ability = function(self, card)
+        card:set_eternal(true)
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.GREEN, G.C.WHITE, 1)
+    end,
+}
+
+SMODS.Joker {
+    key = "jp",
+    name = "Jesse Pinkman",
+    atlas = "jp",
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = {x = 0, y = 0},
+
+    loc_txt = {
+        name = "Jesse Pinkman",
+        text = {
+            "If {C:attention}Heisenburg{} is present:",
+            "{C:chips}+50{} Chips, {X:mult,C:white}X2{} Mult",
+            "Otherwise: {C:chips}+20{} Chips, {C:mult}+5{} Mult"
+        }
+    },
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.GREEN, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if not context.joker_main then return end
+
+        local has_heisenburg = false
+        for _, j in ipairs(G.jokers.cards) do
+            if j ~= card then
+                local key = (j.ability and j.ability.key)
+                            or (j.config.center and j.config.center.key)
+                if key == "j_PSM_heisenburg" then
+                    has_heisenburg = true
+                    break
+                end
+            end
+        end
+
+        if has_heisenburg then
+            return {
+                chips = 50,
+                x_mult = 2,
+                message = "Yo, Mr. White!",
+                colour = G.C.GREEN
+            }
+        else
+            return {
+                chips = 20,
+                mult = 5,
+                colour = G.C.BLUE
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    name = "Skyler White",
+    key = "sw",
+    atlas = "sw",
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = {x = 0, y = 0},
+
+    loc_txt = {
+        name = "Skyler White",
+        text = {
+            "Adds {C:attention}4X{} the total sell value",
+            "of all your Jokers as {C:blue}Chips{}",
+            "{C:inactive}(currently: {C:blue}+#1#{} {C:inactive}Chips){}"
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        local jokers = (G and G.jokers and G.jokers.cards) or {}
+        local total_value = 0
+        for _, j in ipairs(jokers) do
+            if j ~= card then
+                local cost = (j.config and j.config.center and j.config.center.cost) or 0
+                total_value = total_value + cost
+            end
+        end
+        return { vars = { tostring(total_value * 4) } }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.DARK_GREEN, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local total_value = 0
+            for _, j in ipairs(G.jokers.cards or {}) do
+                if j ~= card then
+                    local cost = (j.config and j.config.center and j.config.center.cost) or 0
+                    total_value = total_value + cost
+                end
+            end
+            return {
+                chips = total_value * 4,
+                colour = G.C.CHIPS
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    name = "Gus Fring",
+    key = "gus",
+    atlas = "gus",
+    rarity = 3,
+    cost = 10,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            Xmult = 1 -- Starts at x1
+        }
+    },
+
+    loc_txt = {
+        name = "Gus Fring",
+        text = {
+            "Gives {C:money}$1{} per Joker when a {C:attention}Blind{} is selected",
+            "If hand contains a {C:attention}Pair{}, gain {X:mult,C:white}X0.25{} Mult",
+            "{C:inactive}(currently: {C:money}$#1#{}, {X:mult,C:white}X#2#{} {C:inactive}Mult){}"
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        local jokers = (G and G.jokers and G.jokers.cards) or {}
+        local xmult = (card and card.ability and card.ability.extra and card.ability.extra.Xmult) or 1
+
+        local function format_xmult(value)
+            if math.floor(value) == value then
+                return tostring(value)
+            else
+                return string.format("%.2f", value)
+            end
+        end
+
+        return {
+            vars = {
+                tostring(#jokers),
+                format_xmult(xmult)
+            }
+        }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.DARK_GREEN, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        -- 💰 On Blind selection, gain $1 per Joker
+        if context.setting_blind and not context.blueprint then
+            local count = (G and G.jokers and G.jokers.cards and #G.jokers.cards) or 0
+            return {
+                dollars = count,
+            }
+        end
+
+        -- 🂡 During scoring: if Pair present, upgrade xMult and show message early
+        if context.cardarea == G.jokers and context.joker_main and context.poker_hands then
+            if next(context.poker_hands["Pair"]) then
+                card.ability.extra.Xmult = (card.ability.extra.Xmult or 1) + 0.25
+
+                -- 💬 Show Tread Lightly before scoring
+                card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
+                    message = "Tread Lightly",
+                    colour = G.C.XMULT
+                })
+            end
+
+            return {
+                x_mult = card.ability.extra.Xmult or 1
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    name             = "Saul Goodman",
+    key              = "saul",
+    atlas            = "saul",
+    rarity           = 3,
+    cost             = 10,
+    discovered       = true,
+    blueprint_compat = true,
+    eternal_compat   = false,
+    pos              = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            uses_remaining = 2,
+            mult_active = false
+        }
+    },
+
+    loc_txt = {
+        name = "Saul Goodman",
+        text = {
+            "Prevents death {C:attention}2{} times.",
+            "After the first save, gives {C:mult}+20{} Mult",
+            "for the rest of the run,",
+            "then disappears on the second save.",
+            "{C:inactive}(remaining: {C:attention}#1#{}{C:inactive}){}"
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { tostring(card.ability.extra.uses_remaining or 0) } }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.GREEN, G.C.WHITE, 1)
+    end,
+
+    on_round_start = function(self, card, context)
+        -- Don't reset uses; keep them persistent across rounds
+        card.ability.extra.mult_active = false
+    end,
+
+    calculate = function(self, card, context)
+        local extra = card.ability.extra
+        local uses  = extra.uses_remaining or 0
+
+        if context.end_of_round and context.game_over and uses > 0 then
+            extra.uses_remaining = uses - 1
+
+            if uses == 2 then
+                -- First save: Activate mult boost for future hands
+                extra.mult_active = true
+            elseif uses == 1 then
+                -- Second save: Self-destruct
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({ G.C.RED }, nil, 1.2)
+                        return true
+                    end
+                }))
+            end
+
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "Better Call Saul!",
+                colour  = G.C.MONEY
+            })
+
+            return {
+                saved   = true,
+            }
+        end
+
+        -- 🟢 2) After first save, grant +20 mult every hand
+        if context.joker_main and extra.mult_active then
+            return {
+                mult    = 20,
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "ts",
+    atlas = "ts", -- You must provide tuco_salamanca.png in your mod folder
+    rarity = 1, -- Common
+    cost = 4,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = {x = 0, y = 0},
+
+    config = {
+        extra = {
+            tuco_hit = false
+        }
+    },
+
+    loc_txt = {
+        name = "Tuco Salamanca",
+        text = {
+            "Every hand: {C:attention}50%{} chance to gain",
+            "{X:mult,C:white}X2.22{} Mult, or lose {C:chips}-30{} Chips",
+        }
+    },
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Breaking Bad", G.C.GREEN, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.before and context.cardarea == G.jokers and not context.blueprint then
+            card.ability.extra.tuco_hit = pseudorandom("tuco_flip") < 0.5
+        end
+
+        if context.joker_main then
+            if card.ability.extra.tuco_hit then
+                G.E_MANAGER:add_event(Event({
+                func = function()
+                    play_tt()
+                    return true
+                end,
+                delay = 0.01
+            }))
+                return {
+                    x_mult = 2.22,
+                    message = "Tight! Tight Tight!",
+                    colour = G.C.RED
+                }
+            else
+                return {
+                    chips = -30,
+                    colour = G.C.CHIPS
                 }
             end
         end
