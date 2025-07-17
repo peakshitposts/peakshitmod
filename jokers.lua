@@ -2151,7 +2151,7 @@ SMODS.Joker {
         text = {
             "Gives {C:money}$#2#{} per Joker when a {C:attention}Blind{} is selected",
             "If hand contains a {C:attention}Pair{}, gain {X:mult,C:white}X#3#{} Mult",
-            "{C:inactive}(currently: {C:money}$#1#{}, {X:mult,C:white}X#2#{} {C:inactive}Mult){}"
+            "{C:inactive}(currently: {C:money}$#1#{}, {X:mult,C:white}X#4#{} {C:inactive}Mult){}"
         }
     },
 
@@ -3281,7 +3281,7 @@ SMODS.Joker {
             "At the start of each round, rolls a random {C:attention}PSA{} grade (1-10).",
             "Grades {C:attention}1-7{}: {C:chips}+#1#{} Chips, {C:mult}+#2#{} Mult {C:attention}(multiplied by PSA value){}",
             "Grades {C:attention}8-10{}: Special bonuses:",
-            "{C:attention}8{}: {X:chips,C:white}X#3#{} Chips, {X:mult,C:white}X#3#{} Mult | {C:attention}9{}: {X:chips,C:white}X#4#{} Chips, {X:mult,C:white}X#4#{} Mult | {C:attention}10{}: {X:chips,C:white}X#5#{} Chips, {X:mult,C:white}X#5#{} Mult",
+            "{C:attention}8{}: {X:chips,C:white}X#4#{} Chips, {X:mult,C:white}X#4#{} Mult | {C:attention}9{}: {X:chips,C:white}X#5#{} Chips, {X:mult,C:white}X#5#{} Mult | {C:attention}10{}: {X:chips,C:white}X#6#{} Chips, {X:mult,C:white}X#6#{} Mult",
             "{C:inactive}(current PSA: {C:attention}#3#{C:inactive})"
         }
     },
@@ -3409,7 +3409,7 @@ SMODS.Joker {
     rarity = 2,
     cost = 5,
     discovered = true,
-    blueprint_compat = true,
+    blueprint_compat = false,
     eternal_compat = true,
     pos = { x = 0, y = 0 },
 
@@ -3470,14 +3470,15 @@ SMODS.Joker {
     config = {
         extra = {
             active = false,
-            had_mission_last = false
+            had_mission_last = false,
+            x_chips1 = 3 -- Chips granted per successful Mission
         }
     },
 
     loc_txt = {
         name = "Charles",
         text = {
-            "Gives {X:chips,C:white}X3{} Chips once a",
+            "Gives {X:chips,C:white}X#2#{} Chips once a",
             "{C:attention}Mission{} card has been used",
             "{C:attention}after{} obtaining this joker.",
             "{C:inactive}(currently: {C:attention}#1#{C:inactive})"
@@ -3486,7 +3487,7 @@ SMODS.Joker {
 
     loc_vars = function(self, info_queue, card)
         local status = card.ability.extra.active and "active" or "inactive"
-        return { vars = { status } }
+        return { vars = { status, tostring(card.ability.extra.x_chips1) } }
     end,
 
     set_badges = function(self, card, badges)
@@ -3515,7 +3516,7 @@ SMODS.Joker {
         if context.joker_main then
             if card.ability.extra.active then
                 return {
-                    x_chips = 3,
+                    x_chips = card.ability.extra.x_chips1,
                     colour = G.C.CHIPS
                 }
             end
