@@ -4117,51 +4117,55 @@ SMODS.Joker {
     end
 }
 
-SMODS.Joker {
-    key = "wdh",
-    name = "Walt Disney's Head",
-    atlas = "wdh", -- Use any registered atlas, change if you add a custom one
-    rarity = 4,
-    cost = 25,
-    discovered = true,
-    blueprint_compat = true,
-    config = { extra = {chance = 1} },
-    eternal_compat = true,
-    pos = { x = 0, y = 0 },
+local ENABLE_WDH = false -- Set to true to enable Walt Disney's Head joker
 
-    loc_txt = {
+if ENABLE_WDH then
+    SMODS.Joker {
+        key = "wdh",
         name = "Walt Disney's Head",
-        text = {
-            "{C:attention}#1# in 2{} chance to not hire Jewish people.",
-            "{C:inactive}the mod creator, me, is Jewish, this card is{}",
-            "{C:inactive}a {C:attention}JOKE{}{C:inactive}, don't take it seriously.{}",
-        }
-    },
+        atlas = "wdh", -- Use any registered atlas, change if you add a custom one
+        rarity = 4,
+        cost = 25,
+        discovered = true,
+        blueprint_compat = true,
+        config = { extra = {chance = 1} },
+        eternal_compat = true,
+        pos = { x = 0, y = 0 },
 
-    loc_vars = function(self, info_queue, card)
-        return { vars = {tostring(card.ability.extra.chance or 1)} }
-    end,
+        loc_txt = {
+            name = "Walt Disney's Head",
+            text = {
+                "{C:attention}#1# in 2{} chance to not hire Jewish people.",
+                "{C:inactive}the mod creator, me, is Jewish, this card is{}",
+                "{C:inactive}a {C:attention}JOKE{}{C:inactive}, don't take it seriously.{}",
+            }
+        },
 
-    calculate = function(self, card, context)
-        -- Roll 1 in 2 chance and play a sound if it hits
-        if context.joker_main and not card.debuff then
-            local roll = math.random(1, 2)
-            if roll <= (card.ability.extra.chance or 1) then
-                 G.E_MANAGER:add_event(Event({
-                        func = function()
-                            play_nojews()
-                            return true
-                        end,
-                        delay = 0.01
-                    }))
-                return {
-                    message = "Jews rejected!",
-                    colour = G.C.RED
-                }
+        loc_vars = function(self, info_queue, card)
+            return { vars = {tostring(card.ability.extra.chance or 1)} }
+        end,
+
+        calculate = function(self, card, context)
+            -- Roll 1 in 2 chance and play a sound if it hits
+            if context.joker_main and not card.debuff then
+                local roll = math.random(1, 2)
+                if roll <= (card.ability.extra.chance or 1) then
+                     G.E_MANAGER:add_event(Event({
+                            func = function()
+                                play_nojews()
+                                return true
+                            end,
+                            delay = 0.01
+                        }))
+                    return {
+                        message = "Jews rejected!",
+                        colour = G.C.RED
+                    }
+                end
             end
         end
-    end
-}
+    }
+end
 
 SMODS.Joker {
     key = "stormtrooper",
