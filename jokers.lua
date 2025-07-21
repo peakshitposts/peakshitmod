@@ -465,6 +465,104 @@ SMODS.Atlas {
     py = 700
 }
 
+SMODS.Atlas {
+    key = "zama",
+    path = "zama.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "jb",
+    path = "jb.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "moc",
+    path = "moc.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "sis",
+    path = "sis.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "ohd",
+    path = "ohd.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "rt",
+    path = "rt.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "obiwan",
+    path = "obiwan.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "anakin",
+    path = "anakin.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "ls",
+    path = "ls.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "dv",
+    path = "dv.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "order66",
+    path = "order66.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "mrsinn",
+    path = "mrsinn.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "pd",
+    path = "pd.png",
+    px = 500,
+    py = 700
+}
+
+SMODS.Atlas {
+    key = "bum",
+    path = "bum.png",
+    px = 500,
+    py = 700
+}
+
 -- Register both sounds globally
 SMODS.Sound {
     key = "PSM_forever",
@@ -514,6 +612,26 @@ SMODS.Sound {
     key = "PSM_nojews",
     path = "nojews.ogg"
 } 
+SMODS.Sound {
+    key = "PSM_ohd",
+    path = "ohd.ogg"
+} 
+SMODS.Sound {
+    key = "PSM_rebelblaster",
+    path = "rebelblaster.ogg"
+} 
+SMODS.Sound {
+    key = "PSM_saber1",
+    path = "saber1.ogg"
+} 
+SMODS.Sound {
+    key = "PSM_Luke",
+    path = "Luke.ogg"
+} 
+SMODS.Sound {
+    key = "PSM_Vader",
+    path = "Vader.ogg"
+}
 SMODS.Sound:register_global()
 
 -- Functions to play sounds
@@ -546,18 +664,22 @@ end
 local function play_trooperdeath()
     play_sound("PSM_trooperdeath", 1.0, 1.0)
 end
-local function play_xblaster()
-    play_sound("PSM_xblaster", tonumber(math.random(8, 15)/10), 1.0)
+local function play_nojews()
+    play_sound("PSM_nojews", 1.0, 3.0)
 end
-local function play_tieblast()
-    play_sound("PSM_tieblast", tonumber(math.random(8, 15)/10), 1.0)
+local function play_ohd()
+    play_sound("PSM_ohd", 1.0, 2.0)
 end
 local function play_shipboom()
     play_sound("PSM_shipboom", 1.0, 1.0)
 end
-local function play_nojews()
-    play_sound("PSM_nojews", 1.0, 3.0)
+local function play_Luke()
+    play_sound("PSM_Luke", 1.0, 1.0)
 end
+local function play_Vader()
+    play_sound("PSM_Vader", 1.0, 1.0)
+end
+
 
 SMODS.ConsumableType{
    key = 'MissionConsumableType', --consumable type key
@@ -800,7 +922,6 @@ SMODS.Booster({
             'select up to {C:attention}#1#{} card.',
             '{C:inactive}(all mission cards must be used immediately){}',
         },
-        group_name = "The Henry Stickmin Collection",
     },
     config = { extra = 2, choose = 1},
     weight = 1,
@@ -1373,7 +1494,7 @@ SMODS.Joker {
     discovered = true,
     pos = {x = 0, y = 0},
     config = { extra = { 
-        triggered_this_hand = false ,
+        triggered_this_hand = false,
         chance = 1, -- 1 in 5 chance
     } },
     loc_txt = {
@@ -1401,49 +1522,57 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        -- Reset once per hand
-        if context.before and context.main_eval and not card.debuff then
+        -- Reset once per hand (only for the original card, not blueprints)
+        if context.before and context.main_eval and not context.blueprint and not card.debuff then
             card.ability.extra.triggered_this_hand = false
         end
 
-        if context.after and context.cardarea == G.jokers and not context.blueprint and not card.ability.extra.triggered_this_hand and not card.debuff then
-            card.ability.extra.triggered_this_hand = true
-
-            local chance = (card.ability and card.ability.extra and card.ability.extra.chance) or (self.config and self.config.extra and self.config.extra.chance) or 1
-            local rolled = pseudorandom('yeezus_trigger')
-            if rolled < chance/5 then
-                local targets = {}
-
-                -- Only use cards from the actual played hand
-                for _, c in ipairs(context.full_hand or {}) do
-                    if not c.edition and c.set_edition then
-                        table.insert(targets, c)
-                    end
+        if context.after and context.cardarea == G.jokers and not card.debuff then
+            -- Check if we should trigger (original card needs flag check, blueprint always can trigger)
+            local should_trigger = context.blueprint or not card.ability.extra.triggered_this_hand
+            
+            if should_trigger then
+                -- Only set the flag for the original card, not blueprints
+                if not context.blueprint then
+                    card.ability.extra.triggered_this_hand = true
                 end
 
-                -- Also include other jokers
-                for _, j in ipairs(G.jokers.cards) do
-                    if j ~= card and not j.edition and j.set_edition then
-                        table.insert(targets, j)
+                local chance = (card.ability and card.ability.extra and card.ability.extra.chance) or (self.config and self.config.extra and self.config.extra.chance) or 1
+                local rolled = pseudorandom('yeezus_trigger')
+                if rolled < chance/5 then
+                    local targets = {}
+
+                    -- Only use cards from the actual played hand
+                    for _, c in ipairs(context.full_hand or {}) do
+                        if not c.edition and c.set_edition then
+                            table.insert(targets, c)
+                        end
                     end
-                end
 
-                if #targets > 0 then
-                    local chosen = pseudorandom_element(targets, pseudoseed("yeezus_target"))
-                    local enhancement = pseudorandom_element({"e_foil", "e_holo", "e_polychrome", "e_negative"}, pseudoseed("yeezus_type"))
+                    -- Also include other jokers
+                    for _, j in ipairs(G.jokers.cards) do
+                        if j ~= card and not j.edition and j.set_edition then
+                            table.insert(targets, j)
+                        end
+                    end
 
-                    chosen:set_edition(enhancement, true)
-                    if chosen.set_cost then chosen:set_cost() end
+                    if #targets > 0 then
+                        local chosen = pseudorandom_element(targets, pseudoseed("yeezus_target"))
+                        local enhancement = pseudorandom_element({"e_foil", "e_holo", "e_polychrome", "e_negative"}, pseudoseed("yeezus_type"))
 
-                    card_eval_status_text(card, 'extra', nil, nil, nil, {
-                        message = "Blessed",
-                        colour = G.C.DARK_EDITION
-                    })
-                else
-                    card_eval_status_text(card, 'extra', nil, nil, nil, {
-                        message = "No Targets",
-                        colour = G.C.RED
-                    })
+                        chosen:set_edition(enhancement, true)
+                        if chosen.set_cost then chosen:set_cost() end
+
+                        card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
+                            message = "Blessed",
+                            colour = G.C.DARK_EDITION
+                        })
+                    else
+                        card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
+                            message = "No Targets",
+                            colour = G.C.RED
+                        })
+                    end
                 end
             end
         end
@@ -1541,7 +1670,7 @@ SMODS.Joker {
     },
 
     calculate = function(self, card, context)
-        if context.selling_self and not context.blueprint and not card.debuff then
+        if context.selling_self and not card.debuff then
             print("[COCA-COLA] Selling — modifying deck cards")
 
             local all_areas = { G.hand, G.deck, G.discard }
@@ -1699,7 +1828,7 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff then
             return {
                 func = function()
                     local bendy_pool = {
@@ -1708,38 +1837,45 @@ SMODS.Joker{
                         "j_PSM_wallyfranks", 
                         "j_PSM_dg", 
                     }
-
-                    if #card.ability.extra.ink_cards < 3 then
+                    local inks = 0
+                    for _, c in ipairs(G.consumeables.cards) do
+                        if c.config and c.config.center and c.config.center.key == 'c_PSM_ink' then
+                            inks = inks + 1
+                        end
+                    end
+                    
+                    if inks < 3 then
                         -- Add another Ink Tarot
                         local ink = create_card('c_PSM_ink', G.consumeables, nil, nil, nil, nil, 'c_PSM_ink')
                         ink:set_edition("e_negative", true)
                         ink:add_to_deck()
                         G.consumeables:emplace(ink)
-                        card.ability.extra.inks = card.ability.extra.inks + 1
                         card_eval_status_text(card, 'extra', nil, nil, nil, {
+                            message = "Ink Flowing...",
                             colour = G.C.BLUE
                         })
-                    elseif #card.ability.extra.ink_cards == 3 then
+                    elseif inks >= 3 then
                         -- Check space for new joker
                         if #G.jokers.cards + G.GAME.joker_buffer >= G.jokers.config.card_limit then
                             card_eval_status_text(card, 'extra', nil, nil, nil, {
                                 message = "No room!",
                                 colour = G.C.RED
-                                })
-                                return true
+                            })
+                            return true
                         end
 
-                       for _, ink in ipairs(card.ability.extra.ink_cards) do
-                            ink.getting_sliced = true
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    ink:start_dissolve({G.C.BLACK}, nil, 1.5)
-                                    return true
-                                end
-                            }))
+                        -- Find and destroy all owned ink cards
+                        for _, c in ipairs(G.consumeables.cards) do
+                            if c.config and c.config.center and c.config.center.key == 'c_PSM_ink' then
+                                c.getting_sliced = true
+                                G.E_MANAGER:add_event(Event({
+                                    func = function()
+                                        c:start_dissolve({G.C.BLACK}, nil, 1.5)
+                                        return true
+                                    end
+                                }))
+                            end
                         end
-
-                        card.ability.extra.ink_cards = {}
 
                         -- Delay and spawn Bendy joker
                         G.E_MANAGER:add_event(Event({
@@ -1749,7 +1885,7 @@ SMODS.Joker{
                                 local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, chosen)
                                 joker:add_to_deck()
                                 G.jokers:emplace(joker)
-                                card.ability.extra.inks = 0
+
                                 card_eval_status_text(card, 'extra', nil, nil, nil, {
                                     message = "Ink Given Form",
                                     colour = G.C.BLUE
@@ -1758,7 +1894,6 @@ SMODS.Joker{
                             end
                         }))
                     end
-
                     return true
                 end
             }
@@ -1811,7 +1946,7 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context.setting_blind and not context.blueprint and not card.debuff then
+        if context.setting_blind and not card.debuff then
             return {
                 func = function()
                     card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {message = "-"..tostring(card.ability.extra.hands).." Hand", colour = G.C.RED})
@@ -1992,13 +2127,13 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context.setting_blind and not context.blueprint and not card.debuff then
+        if context.setting_blind and not card.debuff then
             return {
                 dollars = card.ability.extra.gain_dollars
             }
         end
 
-        if context.skip_blind and not context.blueprint and not card.debuff then
+        if context.skip_blind and not card.debuff and not context.blueprint then
             G.GAME.dollars = card.ability.extra.set_dollars or 0
             card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
                 message = "Set to $0",
@@ -2049,7 +2184,7 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff then
             return {
                 func = function()
                     local bb_pool = {
@@ -2059,18 +2194,24 @@ SMODS.Joker{
                         "j_PSM_saul",
                         "j_PSM_ts"
                     }
+                    local meths = 0
+                    for _, c in ipairs(G.consumeables.cards) do
+                        if c.config and c.config.center and c.config.center.key == 'c_PSM_meth' then
+                            meths = meths + 1
+                        end
+                    end
                 
-                    if #card.ability.extra.meth_cards < 3 then
+                    if meths < 3 then
                         -- Add another Meth Tarot
                         local meth = create_card('c_PSM_meth', G.consumeables, nil, nil, nil, nil, 'c_PSM_meth')
                         meth:set_edition("e_negative", true)
                         meth:add_to_deck()
                         G.consumeables:emplace(meth)
-                        card.ability.extra.meths = card.ability.extra.meths + 1
                         card_eval_status_text(card, 'extra', nil, nil, nil, {
+                            message = "Cooking...",
                             colour = G.C.BLUE
                         })
-                    elseif #card.ability.extra.meth_cards == 3 then
+                    elseif meths >= 3 then
                         -- Check space for new joker
                         if #G.jokers.cards + G.GAME.joker_buffer >= G.jokers.config.card_limit then
                             card_eval_status_text(card, 'extra', nil, nil, nil, {
@@ -2080,21 +2221,20 @@ SMODS.Joker{
                             return true
                         end
 
-                        -- Dissolve the meth arcana cards
-                        for _, meth in ipairs(card.ability.extra.meth_cards) do
-                            meth.getting_sliced = true
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    meth:start_dissolve({G.C.BLACK}, nil, 1.5)
-                                    return true
-                                end
-                            }))
+                        -- Find and destroy all owned meth cards
+                        for _, c in ipairs(G.consumeables.cards) do
+                            if c.config and c.config.center and c.config.center.key == 'c_PSM_meth' then
+                                c.getting_sliced = true
+                                G.E_MANAGER:add_event(Event({
+                                    func = function()
+                                        c:start_dissolve({G.C.BLACK}, nil, 1.5)
+                                        return true
+                                    end
+                                }))
+                            end
                         end
 
-                        -- Remove all meth cards from G.consumeables.cards
-                        card.ability.extra.meth_cards = {}
-
-                        -- Delay and spawn BB joker + give $10
+                        -- Delay and spawn BB joker + give money
                         G.E_MANAGER:add_event(Event({
                             delay = 1.6,
                             func = function()
@@ -2102,7 +2242,6 @@ SMODS.Joker{
                                 local joker = create_card('Joker', G.jokers, nil, nil, nil, nil, chosen)
                                 joker:add_to_deck()
                                 G.jokers:emplace(joker)
-                                card.ability.extra.meths = 0
 
                                 ease_dollars(card.ability.extra.gain_dollars or 10)
 
@@ -2114,7 +2253,6 @@ SMODS.Joker{
                             end
                         }))
                     end
-
                     return true
                 end
             }
@@ -2313,7 +2451,7 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         -- 💰 On Blind selection, gain $1 per Joker
-        if context.setting_blind and not context.blueprint and not card.debuff then
+        if context.setting_blind and not card.debuff then
             local count = (G and G.jokers and G.jokers.cards and #G.jokers.cards) or 0
             return {
                 dollars = count,
@@ -2322,7 +2460,7 @@ SMODS.Joker {
 
         -- 🂡 During scoring: if Pair present, upgrade xMult and show message early
         if context.cardarea == G.jokers and context.joker_main and context.poker_hands and not card.debuff then
-            if next(context.poker_hands["Pair"]) then
+            if next(context.poker_hands["Pair"]) and not context.blueprint then
                 local increment = card.ability.extra.Xmultperpair or 0.25
                 card.ability.extra.Xmult = (card.ability.extra.Xmult or 1) + increment
 
@@ -2394,7 +2532,7 @@ SMODS.Joker {
             if uses == 2 then
                 -- First save: Activate mult boost for future hands
                 extra.mult_active = true
-            elseif uses == 1 then
+            elseif uses == 1 and not context.blueprint then
                 -- Second save: Self-destruct
                 G.E_MANAGER:add_event(Event({
                     func = function()
@@ -2780,24 +2918,26 @@ SMODS.Joker {
 
 local gfcfbs = G.FUNCS.check_for_buy_space
 G.FUNCS.check_for_buy_space = function(card)
-	if
-		(card.ability.name == "Translucent" and card.ability.extra.slots >= 1)
-	then
-		return true
-	end
-	return gfcfbs(card)
+    if
+        (card.ability.name == "Translucent" and card.ability.extra.slots >= 1) or
+        (card.ability.name == "Jakubowy Borek" and card.ability.extra.slots >= 1)
+    then
+        return true
+    end
+    return gfcfbs(card)
 end
 
 local gfcsc = G.FUNCS.can_select_card
 G.FUNCS.can_select_card = function(e)
-	if
-		(e.config.ref_table.ability.name == "Translucent" and e.config.ref_table.ability.extra.slots >= 1)
-	then
-		e.config.colour = G.C.GREEN
-		e.config.button = "use_card"
-	else
-		gfcsc(e)
-	end
+    if
+        (e.config.ref_table.ability.name == "Translucent" and e.config.ref_table.ability.extra.slots >= 1) or
+        (e.config.ref_table.ability.name == "Jakubowy Borek" and e.config.ref_table.ability.extra.slots >= 1)
+    then
+        e.config.colour = G.C.GREEN
+        e.config.button = "use_card"
+    else
+        gfcsc(e)
+    end
 end
 
 SMODS.Joker{
@@ -2903,7 +3043,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.individual and context.cardarea == G.play and not context.blueprint and not card.debuff then
+        if context.individual and context.cardarea == G.play and not card.debuff then
             local suit = context.other_card.base.suit
             if suit == "Diamonds" then
                 return { retrigger = card.ability.extra.diamond_retrigger or 3, colour = G.C.DIAMOND }
@@ -3013,7 +3153,7 @@ SMODS.Joker {
     calculate = function(self, card, context)
 
         -- 2) On scoring each individual card...
-        if context.individual and context.cardarea == G.play and not context.blueprint and not card.debuff then
+        if context.individual and context.cardarea == G.play and not card.debuff then
             -- Only trigger for face cards (J/Q/K/A)
             if context.other_card:is_face() then
                 -- Pick a random enhancement
@@ -3083,23 +3223,24 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         -- Only run once when scoring your jokers
-        if context.joker_main and not context.blueprint and not card.debuff then
-            -- Check for High Card hand
-            if context.poker_hands
+        if context.joker_main and not card.debuff then
+            -- Check for High Card hand (only if not blueprint)
+            if not context.blueprint 
+               and context.poker_hands
                and context.scoring_name == "High Card"
                and not card.ability._wh_processed then
 
-                -- Award +10 permanent chips
-                card.ability.extra.chip_total = (card.ability.extra.chip_total or 0) + 10
+            -- Award +10 permanent chips
+            card.ability.extra.chip_total = (card.ability.extra.chip_total or 0) + 10
 
-                -- Popup feedback
-                card_eval_status_text(card, 'extra', nil, nil, nil, {
-                    message = "Chips upgraded!",
-                    colour  = G.C.CHIPS
-                })
+            -- Popup feedback
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "Chips upgraded!",
+                colour  = G.C.CHIPS
+            })
 
-                -- Prevent double-processing in this hand
-                card.ability._wh_processed = true
+            -- Prevent double-processing in this hand
+            card.ability._wh_processed = true
             end
 
             -- Always return your current total as scoring bonus
@@ -3211,8 +3352,8 @@ SMODS.Joker {
     key = "hulk",
     name = "The Hulk",
     atlas = "hulk",
-    rarity = 3,
-    cost = 8,
+    rarity = 4,
+    cost = 25,
     discovered = true,
     blueprint_compat = true,
     eternal_compat = true,
@@ -3273,7 +3414,7 @@ SMODS.Joker {
     rarity = 3,
     cost = 10,
     discovered = true,
-    blueprint_compat = true,
+    blueprint_compat = false,
     eternal_compat = true,
     pos = { x = 0, y = 0 },
 
@@ -3296,7 +3437,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff and not context.blueprint then
             -- Find Iron Man's index in jokers
             local index = nil
             for i, j in ipairs(G.jokers.cards) do
@@ -3621,25 +3762,20 @@ SMODS.Joker {
 
     config = {
         extra = {
-            active = false,
-            had_mission_last = false,
-            x_chips1 = 3 -- Chips granted per successful Mission
+            x_chips = 3 -- X Chips granted when condition is met
         }
     },
 
     loc_txt = {
         name = "Charles",
         text = {
-            "Gives {X:chips,C:white}X#2#{} Chips once a",
-            "{C:attention}Mission{} card has been used",
-            "{C:attention}after{} obtaining this joker.",
-            "{C:inactive}(currently: {C:attention}#1#{C:inactive})"
+            "Gives {X:chips,C:white}X#1#{} Chips if another",
+            "{C:attention}Henry Stickmin Collection{} Joker is owned."
         }
     },
 
     loc_vars = function(self, info_queue, card)
-        local status = card.ability.extra.active and "active" or "inactive"
-        return { vars = { status, tostring(card.ability.extra.x_chips1) } }
+        return { vars = { tostring(card.ability.extra.x_chips) } }
     end,
 
     set_badges = function(self, card, badges)
@@ -3647,28 +3783,37 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        -- Detect if player had a Mission card last check
-        local has_mission = false
-        if card.debuff then return end
-            has_mission = false
-        for _, c in ipairs(G.consumeables.cards or {}) do
-            if c.config and c.config.center and c.config.center.set == "MissionConsumableType" then
-                has_mission = true
-                break
+        if context.joker_main and not card.debuff then
+            -- Check for other Henry Stickmin Collection jokers
+            local henry_jokers = {
+                "j_PSM_henrystickmin",
+                "j_PSM_ER",
+                "j_PSM_charles",
+                "j_PSM_rhm",
+                "j_PSM_rc"
+            }
+            
+            local has_other_henry = false
+            local charles_count = 0
+            
+            for _, j in ipairs(G.jokers.cards) do
+                local key = (j.ability and j.ability.key) or (j.config.center and j.config.center.key)
+                if key == "j_PSM_charles" then
+                    charles_count = charles_count + 1
+                elseif key then
+                    for _, henry_key in ipairs(henry_jokers) do
+                        if key == henry_key then
+                            has_other_henry = true
+                            break
+                        end
+                    end
+                end
             end
-        end
-
-        -- If previously had a mission, and now doesn't, mark as used
-        if card.ability.extra.had_mission_last and not has_mission and not card.ability.extra.active then
-            card.ability.extra.active = true
-        end
-
-        card.ability.extra.had_mission_last = has_mission
-
-        if context.joker_main then
-            if card.ability.extra.active then
+            
+            -- If we have more than 1 Charles, or we have another Henry Stickmin joker
+            if charles_count > 1 or has_other_henry then
                 return {
-                    x_chips = card.ability.extra.x_chips1,
+                    x_chips = card.ability.extra.x_chips,
                     colour = G.C.CHIPS
                 }
             end
@@ -3714,7 +3859,7 @@ SMODS.Joker {
         end
 
         -- Main effect: convert 2–10s into face cards w/ Top Hat
-        if context.joker_main and context.full_hand and not context.blueprint and not card.debuff then
+        if context.joker_main and context.full_hand and not card.debuff then
             local to_destroy = {}
 
             for _, c in ipairs(context.full_hand) do
@@ -3971,7 +4116,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.end_of_round and context.main_eval and G.GAME.blind and G.GAME.blind.boss and not context.blueprint and not card.debuff then
+        if context.end_of_round and context.main_eval and G.GAME.blind and G.GAME.blind.boss and not card.debuff then
                 local count = math.random(card.ability.extra.min or 1, card.ability.extra.max or 3)
                 for i = 1, count do
                     local tc = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_tc')
@@ -4064,7 +4209,7 @@ SMODS.Joker {
     rarity = 2,
     cost = 7,
     discovered = true,
-    blueprint_compat = true,
+    blueprint_compat = false,
     eternal_compat = true,
     pos = { x = 0, y = 0 },
 
@@ -4079,17 +4224,21 @@ SMODS.Joker {
         text = {
             "When a {C:attention}Blind{} is selected,",
             "subtracts {C:attention}50%{} of its value.",
-            "Can be used {C:attention}#1#{} more " .. ((card and card.ability and card.ability.extra and card.ability.extra.uses == 1) and "time." or "times.")
+            "Can be used {C:attention}#1#{} more #2#"
         }
     },
 
     loc_vars = function(self, info_queue, card)
-        return { vars = { tostring(card.ability.extra.uses or 0) } }
+        local uses = card.ability.extra.uses or 0
+        local label = (uses == 1) and "time." or "times."
+        return { vars = { tostring(uses), label } }
     end,
 
     calculate = function(self, card, context)
-        if context.setting_blind and not context.blueprint and not card.debuff and (card.ability.extra.uses or 0) > 0 then
-            card.ability.extra.uses = card.ability.extra.uses - 1
+        if context.setting_blind and not card.debuff and not context.blueprint and (card.ability.extra.uses or 0) > 0 then
+            if not context.blueprint then
+                card.ability.extra.uses = card.ability.extra.uses - 1
+            end
                 local reduction = math.floor(G.GAME.blind.chips * 0.5)
                 G.GAME.blind.chips = G.GAME.blind.chips - reduction
                  G.E_MANAGER:add_event(Event({
@@ -4103,27 +4252,42 @@ SMODS.Joker {
                     message = "Bullseye!",
                     colour = G.C.RED
                 })
-            if card.ability.extra.uses <= 0 then
+            return true
+        end
+       if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff and card.ability.extra.uses <= 0 then
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         card:start_dissolve({G.C.RED}, nil, 1.2)
                         return true
                     end
                 }))
-                return { remove = true }
-            end
-            return true
+            return { remove = true }
         end
     end
 }
 
-local ENABLE_WDH = false -- Set to true to enable Walt Disney's Head joker
+-- Track if WDH joker has been registered
+-- Initialize the variable by loading saved value or defaulting to false
+local function load_wdh_setting()
+    if love.filesystem.getInfo("wdh_enabled.txt") then
+        local content = love.filesystem.read("wdh_enabled.txt")
+        return content == "true"
+    end
+    return false
+end
 
-if ENABLE_WDH then
+local function save_wdh_setting(value)
+    love.filesystem.write("wdh_enabled.txt", tostring(value))
+end
+
+local wdh_enabled = load_wdh_setting()
+
+-- Function to register WDH joker dynamically
+if wdh_enabled == true then
     SMODS.Joker {
         key = "wdh",
         name = "Walt Disney's Head",
-        atlas = "wdh", -- Use any registered atlas, change if you add a custom one
+        atlas = "wdh",
         rarity = 4,
         cost = 25,
         discovered = true,
@@ -4146,7 +4310,6 @@ if ENABLE_WDH then
         end,
 
         calculate = function(self, card, context)
-            -- Roll 1 in 2 chance and play a sound if it hits
             if context.joker_main and not card.debuff then
                 local roll = math.random(1, 2)
                 if roll <= (card.ability.extra.chance or 1) then
@@ -4167,6 +4330,459 @@ if ENABLE_WDH then
     }
 end
 
+function love.load()
+    print("Game started!")
+end
+
+-- Store the original love.keypressed function if it exists
+local original_keypressed = love.keypressed
+
+function love.keypressed(key, scancode, isrepeat)
+    -- Call the original function first if it exists
+    if original_keypressed then
+        original_keypressed(key, scancode, isrepeat)
+    end
+    
+    -- Your Konami code logic
+    if not _G.konami_sequence then
+        _G.konami_sequence = {}
+    end
+    
+    local required_sequence = {"up", "up", "down", "down", "left", "right", "left", "right", "b", "a", "return"}
+    
+    table.insert(_G.konami_sequence, key)
+    
+    -- Check if current sequence matches required sequence so far
+    local matches = true
+    for i = 1, #_G.konami_sequence do
+        if _G.konami_sequence[i] ~= required_sequence[i] then
+            matches = false
+            break
+        end
+    end
+    
+    if not matches then
+        -- Reset sequence if it doesn't match
+        _G.konami_sequence = {key}
+        -- Check if this single key could be the start of the sequence
+        if key ~= required_sequence[1] then
+            _G.konami_sequence = {}
+        end
+    elseif #_G.konami_sequence == #required_sequence then
+        -- Complete sequence entered
+        print("Konami Code activated!")
+        if wdh_enabled then
+            wdh_enabled = false
+        else
+            wdh_enabled = true
+        end
+        save_wdh_setting(wdh_enabled)
+        _G.konami_sequence = {}
+        SMODS.restart_game()
+    end
+    
+    -- Handle 'w' key press to spawn WDH joker if enabled
+    if key == "w" and wdh_enabled then
+        -- Create WDH joker if room allows
+        if G and G.jokers and #G.jokers.cards < G.jokers.config.card_limit then
+            local wdh = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_wdh')
+            if wdh then
+                wdh:add_to_deck()
+                G.jokers:emplace(wdh)
+                print("Walt Disney's Head spawned!")
+            end
+        else
+            print("No room for Walt Disney's Head!")
+        end
+    end
+end
+
+SMODS.Joker {
+    key = "zama",
+    name = "Zama Dlimini",
+    atlas = "zama", -- Use any registered atlas or add a custom one for Zama art
+    rarity = 3, -- Rare
+    cost = 8,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            chance = 1 -- 1 in 2 chance
+        }
+    },
+
+    loc_txt = {
+        name = "Zama Dlimini",
+        text = {
+            "When {C:attention}Boss Blind{} is selected,",
+            "{C:attention}#1# in 2{} chance to disable it."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { tostring(card.ability.extra.chance or 1) } }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Random", G.C.PURPLE, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.setting_blind and G.GAME.blind and G.GAME.blind.boss and not card.debuff then
+            local roll = pseudorandom("zama_disable_" .. tostring(card.uuid or math.random()))
+            if roll < (card.ability.extra.chance or 1) / 2 then
+                G.GAME.blind:disable()
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "Zama Yama!",
+                    colour = G.C.GREEN
+                })
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "jb",
+    name = "Jakubowy Borek",
+    atlas = "jb", -- You'll need to add this atlas
+    rarity = 1,
+    cost = 0,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            slots = 1,
+            slot_given = false
+        }
+    },
+
+    loc_txt = {
+        name = "Jakubowy Borek",
+        text = {
+            "Increases Joker slots by {C:attention}+#1#{}.",
+            "{C:attention}Jakubowy Borek{} [jakuˈbɔvɨ ˈbɔrɛk] (German: Jakobswalde)",
+            "is a {C:attention}village{} in the administrative district of",
+            "{C:attention}Gmina Wielbark{}, within {C:attention}Szczytno County{},",
+            "{C:attention}Warmian-Masurian Voivodeship{}, in {C:attention}northern Poland{}.",
+            "It lies approximately {C:attention}11 km{} ({C:attention}7 mi{}) north-east of",
+            "{C:attention}Wielbark{}, {C:attention}15 km{} ({C:attention}9 mi{}) south-east of {C:attention}Szczytno{},",
+            "and {C:attention}54 km{} ({C:attention}34 mi{}) south-east of the",
+            "regional capital {C:attention}Olsztyn{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { tostring(card.ability.extra.slots or 1) } }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Random", G.C.PURPLE, G.C.WHITE, 1)
+    end,
+
+    can_buy_at_max = function(self, card)
+        return true
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        if not card.ability.extra.slot_given then
+            G.jokers.config.card_limit = lenient_bignum(G.jokers.config.card_limit + to_big(card.ability.extra.slots))
+            card.ability.extra.slot_given = true
+        end
+    end,
+
+    remove_from_deck = function(self, card, from_debuff)
+        if card.ability.extra.slot_given then
+            G.jokers.config.card_limit = lenient_bignum(G.jokers.config.card_limit - to_big(card.ability.extra.slots))
+            card.ability.extra.slot_given = false
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = "moc",
+    name = "Maximianus of Constantinople",
+    atlas = "moc", -- Using existing atlas, you can change this to a custom one
+    rarity = 3,
+    cost = 10,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {}
+    },
+
+    loc_txt = {
+        name = "Maximianus of Constantinople",
+        text = {
+            "All scored cards become {C:attention}Kings{}"
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = {} }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Random", G.C.PURPLE, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local c = context.other_card
+            -- Only change rank if it's not already a King
+            if c.base.id ~= 13 then
+                SMODS.change_base(c, c.base.suit, "King")
+                c:juice_up()
+                if c.set_cost then c:set_cost() end
+                
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "Crowned!",
+                    colour = G.C.GOLD
+                })
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "sis",
+    name = "Southeastern Iberian Scripture",
+    atlas = "sis", -- Use any registered atlas or add a custom one for this joker
+    rarity = 2,
+    cost = 5,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            cards_per_round = 3
+        }
+    },
+
+    loc_txt = {
+        name = "Southeastern Iberian Scripture",
+        text = {
+            "At the end of each round, grants a random",
+            "enhancement to {C:attention}#1#{} random cards in your deck."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { tostring(card.ability.extra.cards_per_round or 2) } }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Random", G.C.PURPLE, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff and not context.blueprint then
+            local deck_cards = {}
+            for _, c in ipairs(G.deck.cards or {}) do
+                if c and c.set_ability then
+                    table.insert(deck_cards, c)
+                end
+            end
+            if #deck_cards == 0 then return end
+
+            local n = math.min(card.ability.extra.cards_per_round or 2, #deck_cards)
+            local chosen = {}
+            local used = {}
+
+            while #chosen < n do
+                local idx = math.random(1, #deck_cards)
+                if not used[idx] then
+                    table.insert(chosen, deck_cards[idx])
+                    used[idx] = true
+                end
+            end
+
+            for _, c in ipairs(chosen) do
+                local enh_key = { key = "sis", guaranteed = true }
+                local enh_id = SMODS.poll_enhancement(enh_key)
+                local enh_center = G.P_CENTERS[enh_id]
+                if enh_center then
+                    c:set_ability(enh_center, nil, true)
+                    if c.set_cost then c:set_cost() end
+                    c:juice_up()
+                end
+            end
+
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "Scripture bestows power...",
+                colour = G.C.FILTER
+            })
+            return true
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "ohd",
+    name = "Obama Have Dih",
+    atlas = "ohd",
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            mult_normal = 10,
+            mult_ohd = 25,
+            ohd_chance = 1 -- 1 in 4 chance
+        }
+    },
+
+    loc_txt = {
+        name = "Obama Have Dih",
+        text = {
+            "Gives {C:mult}+#1#{} Mult.",
+            "{C:attention}#2# in 4{} chance to",
+            "give {C:mult}+#3#{} Mult instead."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                tostring(card.ability.extra.mult_normal or 10),
+                tostring(card.ability.extra.ohd_chance or 1),
+                tostring(card.ability.extra.mult_ohd or 25)
+            }
+        }
+    end,
+
+    calculate = function(self, card, context)
+        if context.joker_main and not card.debuff then
+            local roll = pseudorandom("ohd_" .. tostring(card.uuid or math.random()))
+            if roll < (card.ability.extra.ohd_chance or 1) / 4 then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_ohd()
+                        return true
+                    end,
+                    delay = 0.01
+                }))
+                return {
+                    mult = card.ability.extra.mult_ohd or 25,
+                    message = "obama have dih :(",
+                    colour = G.C.RED
+                }
+            else
+                return {
+                    mult = card.ability.extra.mult_normal or 10,
+                    colour = G.C.MULT
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "rt",
+    name = "Rebel Trooper",
+    atlas = "rt", -- Use any registered atlas or add a new one for stormtrooper art
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            chips = 20,
+            hit_chance = 1, -- 1 in 2
+            death_chance = 5 -- 1 in 5
+        }
+    },
+
+    loc_txt = {
+        name = "Rebel Trooper",
+        text = {
+            "Each scored card: {C:attention}#1# in 2{} chance to give {C:chips}+#2#{} Chips.",
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                tostring(card.ability.extra.hit_chance or 1),
+                tostring(card.ability.extra.chips or 20),
+                tostring(card.ability.extra.death_chance or 5)
+            }
+        }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        -- On scoring a card: 1 in 2 chance for +20 chips
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local roll = pseudorandom("rebel_trooper_hit_" .. tostring(context.other_card.uuid or math.random()))
+            if roll < (card.ability.extra.hit_chance or 1) / 2 then
+                return {
+                    chips = card.ability.extra.chips or 20,
+                    message = "pew",
+                    colour = G.C.CHIPS,
+                    sound = "PSM_rebelblaster"
+                }
+            end
+        end
+
+        -- At end of round: 1 in 5 chance to die
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+            local roll = pseudorandom("rebel_trooper_die_" .. tostring(card.uuid or math.random()))
+            if roll < 1 / (card.ability.extra.death_chance or 5) then
+                 G.E_MANAGER:add_event(Event({
+                        func = function()
+                            play_trooperdeath()
+                            return true
+                        end,
+                        delay = 0.01
+                    }))
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "AAaaa...",
+                    colour = G.C.RED
+                })
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({G.C.RED}, nil, 1.2)
+                        return true
+                    end
+                }))
+                return { remove = true }
+            end
+        end
+    end
+}
+
+
 SMODS.Joker {
     key = "stormtrooper",
     name = "Stormtrooper",
@@ -4182,7 +4798,7 @@ SMODS.Joker {
         extra = {
             mult = 4,
             hit_chance = 1, -- 1 in 2
-            death_chance = 1 -- 1 in 5
+            death_chance = 5 -- 1 in 5
         }
     },
 
@@ -4190,7 +4806,7 @@ SMODS.Joker {
         name = "Stormtrooper",
         text = {
             "Each scored card: {C:attention}#1# in 2{} chance to give {C:mult}+#2#{} Mult.",
-            "At end of round: {C:attention}#3# in 5{} chance to {C:red}die{}."
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}."
         }
     },
 
@@ -4199,9 +4815,13 @@ SMODS.Joker {
             vars = {
                 tostring(card.ability.extra.hit_chance or 1),
                 tostring(card.ability.extra.mult or 4),
-                tostring(card.ability.extra.death_chance or 1)
+                tostring(card.ability.extra.death_chance or 5)
             }
         }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
     end,
 
     set_badges = function(self, card, badges)
@@ -4213,19 +4833,11 @@ SMODS.Joker {
         if context.individual and context.cardarea == G.play and not card.debuff then
             local roll = pseudorandom("stormtrooper_hit_" .. tostring(context.other_card.uuid or math.random()))
             if roll < (card.ability.extra.hit_chance or 1) / 2 then
-                 G.E_MANAGER:add_event(Event({
-                        func = function()
-                            play_blaster()
-                            return true
-                        end,
-                        delay = 0.01
-                    }))
-                    card_eval_status_text(card, 'extra', nil, nil, nil, {
-                        message = "pew",
-                        colour = G.C.CHIPS
-                    })
                 return {
                     mult = card.ability.extra.mult or 4,
+                    message = "pew",
+                    colour = G.C.CHIPS,
+                    sound = "PSM_blaster"
                 }
             end
         end
@@ -4233,7 +4845,7 @@ SMODS.Joker {
         -- At end of round: 1 in 5 chance to die
         if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
             local roll = pseudorandom("stormtrooper_die_" .. tostring(card.uuid or math.random()))
-            if roll < (card.ability.extra.death_chance or 1) / 5 then
+            if roll < 1 / (card.ability.extra.death_chance or 5) then
                  G.E_MANAGER:add_event(Event({
                         func = function()
                             play_trooperdeath()
@@ -4272,7 +4884,7 @@ SMODS.Joker {
         extra = {
             chips = 50,
             hit_chance = 1, -- 1 in 2
-            explode_chance = 1 -- 1 in 8
+            explode_chance = 8 -- 1 in 8
         }
     },
 
@@ -4280,7 +4892,7 @@ SMODS.Joker {
         name = "X-wing",
         text = {
             "Each scored card: {C:attention}#1# in 2{} chance to give {C:chips}+#2#{} Chips.",
-            "At end of round: {C:attention}#3# in 8{} chance to {C:red}explode{}."
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}explode{}."
         }
     },
 
@@ -4289,9 +4901,13 @@ SMODS.Joker {
             vars = {
                 tostring(card.ability.extra.hit_chance or 1),
                 tostring(card.ability.extra.chips or 50),
-                tostring(card.ability.extra.explode_chance or 1)
+                tostring(card.ability.extra.explode_chance or 8)
             }
         }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
     end,
 
     set_badges = function(self, card, badges)
@@ -4303,19 +4919,11 @@ SMODS.Joker {
         if context.individual and context.cardarea == G.play and not card.debuff then
             local roll = pseudorandom("xwing_hit_" .. tostring(context.other_card.uuid or math.random()))
             if roll < (card.ability.extra.hit_chance or 1) / 2 then
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        play_xblaster()
-                        return true
-                    end,
-                    delay = 0.01
-                }))
-                card_eval_status_text(card, 'extra', nil, nil, nil, {
-                    message = "pew",
-                    colour = G.C.RED
-                })
                 return {
                     chips = card.ability.extra.chips or 50,
+                    message = "pew",
+                    colour = G.C.RED,
+                    sound = "PSM_xblaster"
                 }
             end
         end
@@ -4323,7 +4931,7 @@ SMODS.Joker {
         -- At end of round: 1 in 8 chance to explode
         if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
             local roll = pseudorandom("xwing_explode_" .. tostring(card.uuid or math.random()))
-            if roll < (card.ability.extra.explode_chance or 1) / 8 then
+            if roll < 1 / (card.ability.extra.explode_chance or 8) then
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         play_shipboom()
@@ -4362,7 +4970,7 @@ SMODS.Joker {
         extra = {
             mult = 12,
             hit_chance = 1, -- 1 in 2
-            explode_chance = 1 -- 1 in 8
+            explode_chance = 8 -- 1 in 8
             }
     },
 
@@ -4370,7 +4978,7 @@ SMODS.Joker {
         name = "TIE Fighter",
         text = {
             "Each scored card: {C:attention}#1# in 2{} chance to give {C:mult}+#2#{} Mult.",
-            "At end of round: {C:attention}#3# in 8{} chance to {C:red}explode{}."
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}explode{}."
         }
     },
 
@@ -4379,9 +4987,13 @@ SMODS.Joker {
             vars = {
                 tostring(card.ability.extra.hit_chance or 1),
                 tostring(card.ability.extra.mult or 50),
-                tostring(card.ability.extra.explode_chance or 1)
+                tostring(card.ability.extra.explode_chance or 8)
             }
         }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
     end,
 
     set_badges = function(self, card, badges)
@@ -4393,19 +5005,11 @@ SMODS.Joker {
         if context.individual and context.cardarea == G.play and not card.debuff then
             local roll = pseudorandom("tie_hit_" .. tostring(context.other_card.uuid or math.random()))
             if roll < (card.ability.extra.hit_chance or 1) / 2 then
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        play_tieblast()
-                        return true
-                    end,
-                    delay = 0.01
-                }))
-                card_eval_status_text(card, 'extra', nil, nil, nil, {
-                    message = "pew",
-                    colour = G.C.GREEN
-                })
                 return {
                     mult = card.ability.extra.mult or 50,
+                    message = "pew",
+                    colour = G.C.GREEN,
+                    sound = "PSM_tieblast"
                 }
             end
         end
@@ -4413,7 +5017,7 @@ SMODS.Joker {
         -- At end of round: 1 in 8 chance to explode
         if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
             local roll = pseudorandom("xwing_explode_" .. tostring(card.uuid or math.random()))
-            if roll < (card.ability.extra.explode_chance or 1) / 8 then
+            if roll < 1 / (card.ability.extra.explode_chance or 8) then
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         play_shipboom()
@@ -4433,6 +5037,613 @@ SMODS.Joker {
                 }))
                 return { remove = true }
             end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "obiwan",
+    name = "Obi-Wan Kenobi",
+    atlas = "obiwan", -- Make sure to add obiwan.png to your mod
+    rarity = 3,
+    cost = 10,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            x_chips = 2,
+            hit_chance = 1, -- 1 in 2
+            death_chance = 12, -- 1 in 12
+            transform_chance = 1 -- 1 in 12
+        }
+    },
+
+    loc_txt = {
+        name = "Obi-Wan Kenobi",
+        text = {
+            "Each scored card: {C:attention}#1# in 2{} chance to give {X:chips,C:white}X#2#{} Chips.",
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}",
+            "or {C:attention}#4# in 12{} chance to {C:blue}pass on the torch{}",
+            "to {C:green}Luke Skywalker{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS.j_PSM_ls
+        return {
+            vars = {
+                tostring(card.ability.extra.hit_chance or 1),
+                tostring(card.ability.extra.x_chips or 2),
+                tostring(card.ability.extra.death_chance or 12),
+                tostring(card.ability.extra.transform_chance or 1)
+            }
+        }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        -- On scoring a card: 1 in 2 chance for X2 chips
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local roll = pseudorandom("obiwan_hit_" .. tostring(context.other_card.uuid or math.random()))
+            if roll < (card.ability.extra.hit_chance or 1) / 2 then
+                return {
+                    x_chips = card.ability.extra.x_chips or 2,
+                    message = "wooom",
+                    colour = G.C.CHIPS,
+                    sound = "PSM_saber1"
+                }
+            end
+        end
+
+        -- At end of round: check for death or transformation
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+            local death_roll = pseudorandom("obiwan_die_" .. tostring(card.uuid or math.random()))
+            local transform_roll = pseudorandom("obiwan_transform_" .. tostring(card.uuid or math.random()))
+            
+            -- 1 in 12 chance to transform into Luke Skywalker
+            if transform_roll < (card.ability.extra.transform_chance or 1) / 12 then
+                return {
+                    func = function()
+                        -- Dissolve Obi-Wan
+                        card.getting_sliced = true
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                card:start_dissolve({G.C.BLUE}, nil, 1.2)
+                                return true
+                            end
+                        }))
+
+                        -- Delay and spawn Luke Skywalker
+                        G.E_MANAGER:add_event(Event({
+                            delay = 1.3,
+                            func = function()
+                                local luke = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_ls')
+                                luke:add_to_deck()
+                                G.jokers:emplace(luke)
+
+                                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                                    message = "May the Force be with you, Luke.",
+                                    colour = G.C.BLUE
+                                })
+                                return true
+                            end
+                        }))
+                        return true
+                    end
+                }
+            -- 1 in 12 chance to die
+            elseif death_roll < 1 / (card.ability.extra.death_chance or 12) then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_trooperdeath()
+                        return true
+                    end,
+                    delay = 0.01
+                }))
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "AAaa...",
+                    colour = G.C.BLUE
+                })
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({G.C.BLUE}, nil, 1.2)
+                        return true
+                    end
+                }))
+                return { remove = true }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "anakin",
+    name = "Anakin Skywalker",
+    atlas = "anakin", -- Make sure to add anakin.png to your mod
+    rarity = 3,
+    cost = 10,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            x_mult = 2,
+            hit_chance = 1, -- 1 in 2
+            death_chance = 12, -- 1 in 12
+            transform_chance = 1 -- 1 in 12
+        }
+    },
+
+    loc_txt = {
+        name = "Anakin Skywalker",
+        text = {
+            "Each scored card: {C:attention}#1# in 2{} chance to give {X:mult,C:white}X#2#{} Mult.",
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}",
+            "or {C:attention}#4# in 12{} chance to {C:red}embrace the darkness{},",
+            "and become {C:red}Darth Vader{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS.j_PSM_dv
+        return {
+            vars = {
+                tostring(card.ability.extra.hit_chance or 1),
+                tostring(card.ability.extra.x_mult or 2),
+                tostring(card.ability.extra.death_chance or 12),
+                tostring(card.ability.extra.transform_chance or 1)
+            }
+        }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    calculate = function(self, card, context)
+        -- On scoring a card: 1 in 2 chance for X2 mult
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local roll = pseudorandom("anakin_hit_" .. tostring(context.other_card.uuid or math.random()))
+            if roll < (card.ability.extra.hit_chance or 1) / 2 then
+                return {
+                    x_mult = card.ability.extra.x_mult or 2,
+                    message = "wooom",
+                    colour = G.C.MULT,
+                    sound = "PSM_saber1"
+                }
+            end
+        end
+
+        -- At end of round: check for death or transformation
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+            local death_roll = pseudorandom("anakin_die_" .. tostring(card.uuid or math.random()))
+            local transform_roll = pseudorandom("anakin_transform_" .. tostring(card.uuid or math.random()))
+            
+            -- 1 in 12 chance to transform into Darth Vader
+            if transform_roll < (card.ability.extra.transform_chance or 1) / 12 then
+                return {
+                    func = function()
+                        -- Dissolve Anakin
+                        card.getting_sliced = true
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                card:start_dissolve({G.C.RED}, nil, 1.2)
+                                return true
+                            end
+                        }))
+
+                        -- Delay and spawn Darth Vader
+                        G.E_MANAGER:add_event(Event({
+                            delay = 1.3,
+                            func = function()
+                                local vader = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_PSM_dv')
+                                vader:add_to_deck()
+                                G.jokers:emplace(vader)
+
+                                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                                    message = "I find your lack of faith disturbing.",
+                                    colour = G.C.RED
+                                })
+                                return true
+                            end
+                        }))
+                        return true
+                    end
+                }
+            -- 1 in 12 chance to die
+            elseif death_roll < 1 / (card.ability.extra.death_chance or 12) then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_trooperdeath()
+                        return true
+                    end,
+                    delay = 0.01
+                }))
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "AAaa...",
+                    colour = G.C.RED
+                })
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({G.C.RED}, nil, 1.2)
+                        return true
+                    end
+                }))
+                return { remove = true }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "ls",
+    name = "Luke Skywalker",
+    atlas = "ls", -- Make sure to add ls.png to your mod
+    rarity = 4,
+    cost = 25,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            x_chips = 5,
+            hit_chance = 1, -- 1 in 2
+            death_chance = 50 -- 1 in 50
+        }
+    },
+
+    loc_txt = {
+        name = "Luke Skywalker",
+        text = {
+            "Each scored card: {C:attention}#1# in 2{} chance to give {X:chips,C:white}X#2#{} Chips.",
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                tostring(card.ability.extra.hit_chance or 1),
+                tostring(card.ability.extra.x_chips or 5),
+                tostring(card.ability.extra.death_chance or 50)
+            }
+        }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        G.E_MANAGER:add_event(Event({
+            func = function()
+                play_Luke()
+                return true
+            end,
+            delay = 0.01
+        }))
+    end,
+
+    calculate = function(self, card, context)
+        -- On scoring a card: 1 in 2 chance for X5 chips
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local roll = pseudorandom("luke_hit_" .. tostring(context.other_card.uuid or math.random()))
+            if roll < (card.ability.extra.hit_chance or 1) / 2 then
+                return {
+                    x_chips = card.ability.extra.x_chips or 5,
+                    message = "wooom",
+                    colour = G.C.CHIPS,
+                    sound = "PSM_saber1"
+                }
+            end
+        end
+
+        -- At end of round: 1 in 50 chance to die
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+            local roll = pseudorandom("luke_die_" .. tostring(card.uuid or math.random()))
+            if roll < 1 / (card.ability.extra.death_chance or 50) then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_trooperdeath()
+                        return true
+                    end,
+                    delay = 0.01
+                }))
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "AAaa...",
+                    colour = G.C.BLUE
+                })
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({G.C.BLUE}, nil, 1.2)
+                        return true
+                    end
+                }))
+                return { remove = true }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "dv",
+    name = "Darth Vader",
+    atlas = "dv", -- Make sure to add dv.png to your mod
+    rarity = 4,
+    cost = 25,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            x_mult = 5,
+            hit_chance = 1, -- 1 in 2
+            death_chance = 50 -- 1 in 50
+        }
+    },
+
+    loc_txt = {
+        name = "Darth Vader",
+        text = {
+            "Each scored card: {C:attention}#1# in 2{} chance to give {X:mult,C:white}X#2#{} Mult.",
+            "At end of round: {C:attention}1 in #3#{} chance to {C:red}die{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                tostring(card.ability.extra.hit_chance or 1),
+                tostring(card.ability.extra.x_mult or 5),
+                tostring(card.ability.extra.death_chance or 50)
+            }
+        }
+    end,
+
+    in_pool = function(self, args)
+        return true, { allow_duplicates = true }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        G.E_MANAGER:add_event(Event({
+            func = function()
+                play_Vader()
+                return true
+            end,
+            delay = 0.01
+        }))
+    end,
+
+    calculate = function(self, card, context)
+        -- On scoring a card: 1 in 2 chance for X5 mult
+        if context.individual and context.cardarea == G.play and not card.debuff then
+            local roll = pseudorandom("vader_hit_" .. tostring(context.other_card.uuid or math.random()))
+            if roll < (card.ability.extra.hit_chance or 1) / 2 then
+                return {
+                    x_mult = card.ability.extra.x_mult or 5,
+                    message = "wooom",
+                    colour = G.C.MULT,
+                    sound = "PSM_saber1"
+                }
+            end
+        end
+
+        -- At end of round: 1 in 50 chance to die
+        if context.end_of_round and not context.game_over and context.main_eval and not context.blueprint and not card.debuff then
+            local roll = pseudorandom("vader_die_" .. tostring(card.uuid or math.random()))
+            if roll < 1 / (card.ability.extra.death_chance or 50) then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_trooperdeath()
+                        return true
+                    end,
+                    delay = 0.01
+                }))
+                card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    message = "AAaa...",
+                    colour = G.C.RED
+                })
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:start_dissolve({G.C.RED}, nil, 1.2)
+                        return true
+                    end
+                }))
+                return { remove = true }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "mrsinn",
+    name = "Mr. Sinn",
+    atlas = "mrsinn", -- Use any registered atlas or add a custom one for Mr. Sinn art
+    rarity = 2, -- Uncommon
+    cost = 6,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            multgrowth = 1.1, -- Multiplier for jokers to the left
+        }
+    },
+
+    loc_txt = {
+        name = "Mr. Sinn",
+        text = {
+            "At the end of each round, multiply",
+            "the values of the joker",
+            "to the left by {X:mult,C:white}X#1#{}."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            tostring(self.config.extra.multgrowth)
+        } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff and not context.blueprint then
+            -- Find Mr. Sinn's index in jokers
+            local index = nil
+            for i, j in ipairs(G.jokers.cards) do
+                if j == card then
+                    index = i
+                    break
+                end
+            end
+            if not index then return end
+
+            -- Get the joker to the left (index - 1)
+            local left_joker = G.jokers.cards[index - 1]
+            
+            if left_joker then
+                -- Multiply all numeric values in its .ability.extra by multiplier
+                if left_joker.ability and left_joker.ability.extra and type(left_joker.ability.extra) == "table" then
+                    for key, val in pairs(left_joker.ability.extra) do
+                        if type(val) == "number" then
+                            left_joker.ability.extra[key] = val * (card.ability.extra.multgrowth or 1.1)
+                        end
+                    end
+                    left_joker:juice_up()
+                    
+                    card_eval_status_text(card, 'extra', nil, nil, nil, {
+                        message = "Hello geographers!",
+                        colour = G.C.MULT
+                    })
+                end
+            end
+            return true
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "pd",
+    name = "pls donate",
+    atlas = "pd",
+    rarity = 1,
+    cost = 3,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {}
+    },
+
+    loc_txt = {
+        name = "pls donate",
+        text = {
+            "At the end of each round, gain a random",
+            "amount of money from {C:money}$1{} to {C:money}$20{}.",
+            "{C:inactive}(lower amounts are much more common){}"
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = {} }
+    end,
+
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.game_over and context.main_eval and not card.debuff and not context.blueprint then
+            -- Weighted random: lower numbers much more common
+            -- We'll use a quadratic distribution: pick x in [0,1), then floor(20 * x^2) + 1
+            local r = pseudorandom("pls_donate_" .. tostring(card.uuid or math.random()))
+            local amount = math.floor(20 * (r ^ 2)) + 1
+            ease_dollars(amount)
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "You got $" .. tostring(amount) .. "!",
+                colour = G.C.MONEY
+            })
+            return true
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "bum",
+    name = "Bum",
+    atlas = "bum", -- Make sure to add bum.png to your mod
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    pos = { x = 0, y = 0 },
+
+    config = {
+        extra = {
+            x_mult = 1.5,
+            x_chips = 1.5,
+            money_loss = 4
+        }
+    },
+
+    loc_txt = {
+        name = "Bum",
+        text = {
+            "Gives {X:mult,C:white}X#1#{} Mult and {X:chips,C:white}X#2#{} Chips",
+            "but lose {C:money}$#3#{} when {C:attention}Blind{} is selected."
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                tostring(card.ability.extra.x_mult or 1.5),
+                tostring(card.ability.extra.x_chips or 1.5),
+                tostring(card.ability.extra.money_loss or 4)
+            }
+        }
+    end,
+
+    calculate = function(self, card, context)
+        if context.setting_blind and not card.debuff then
+            return {
+                dollars = -(card.ability.extra.money_loss or 4)
+            }
+        end
+
+        if context.joker_main and not card.debuff then
+            return {
+                x_mult = card.ability.extra.x_mult or 1.5,
+                x_chips = card.ability.extra.x_chips or 1.5
+            }
         end
     end
 }
@@ -4687,6 +5898,84 @@ SMODS.Consumable {
         card_eval_status_text(card, 'extra', nil, nil, nil, {
             message = "Perfectly Balanced",
             colour = G.C.MONEY
+        })
+    end,
+}
+
+SMODS.Consumable {
+    key     = 'order66',
+    set     = 'Spectral',
+    atlas   = 'order66',  -- Use stormtrooper art for Order 66
+    pos     = { x = 0, y = 0 },
+
+    loc_txt = {
+        name = 'Order 66',
+        text = {
+            'Replace every owned Joker with a random',
+            '{C:attention}Star Wars{} Joker of the same rarity.'
+        }
+    },
+
+    config = {
+        extra = {}
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = {} }
+    end,
+
+    set_badges = function(self, card, badges)
+        badges[#badges+1] = create_badge("Star Wars", G.C.BLACK, G.C.WHITE, 1)
+    end,
+
+    can_use = function(self, card)
+        return G.jokers and #G.jokers.cards > 0
+    end,
+
+    use = function(self, card, area, copier)
+        -- Pools by rarity
+        local sw_jokers = {
+            [1] = { "j_PSM_rt", "j_PSM_stormtrooper" },
+            [2] = { "j_PSM_tie", "j_PSM_xwing" },
+            [3] = { "j_PSM_obiwan", "j_PSM_anakin" },
+            [4] = { "j_PSM_ls", "j_PSM_dv" }
+        }
+
+        local to_replace = {}
+        for _, j in ipairs(G.jokers.cards) do
+            if j and j.config and j.config.center and j.config.center.rarity then
+                table.insert(to_replace, j)
+            end
+        end
+
+        for _, j in ipairs(to_replace) do
+            local rarity = j.config.center.rarity or 1
+            local pool = sw_jokers[rarity] or sw_jokers[1]
+            local new_key = pseudorandom_element(pool, pseudoseed("order66_" .. tostring(j.uuid or math.random())))
+            -- Dissolve old joker
+            j.getting_sliced = true
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    j:start_dissolve({G.C.BLACK}, nil, 1.2)
+                    return true
+                end
+            }))
+            -- Delay and add new joker
+            G.E_MANAGER:add_event(Event({
+                delay = 1.3,
+                func = function()
+                    local new_joker = create_card('Joker', G.jokers, nil, nil, nil, nil, new_key)
+                    new_joker:add_to_deck()
+                    G.jokers:emplace(new_joker)
+                    return true
+                end
+            }))
+        end
+
+        card_eval_status_text(card, 'extra', nil, nil, nil, {
+            message = "Execute Order 66",
+            colour = G.C.RED,
+            sound = "PSM_eo66"
         })
     end,
 }
